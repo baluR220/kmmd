@@ -1,0 +1,15 @@
+[Unit]
+Description=kmmd controller service
+Requires=syslog.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/kmmd-controller
+ExecStart=/bin/bash /opt/kmmd-controller/kmmd-daemon.sh
+Restart=no
+RemainAfterExit=True
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

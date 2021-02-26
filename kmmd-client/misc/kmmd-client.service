@@ -1,0 +1,15 @@
+[Unit]
+Description=kmmd client service
+Requires=syslog.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/kmmd-client
+ExecStart=/bin/bash /opt/kmmd-client/kmmd-daemon.sh
+Restart=no
+RemainAfterExit=True
+User=user
+Group=user
+
+[Install]
+WantedBy=multi-user.target
