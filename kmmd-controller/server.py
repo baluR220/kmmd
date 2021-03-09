@@ -1,8 +1,7 @@
-from http.server import *
 import os
 import time
 import json
-import sys
+import http.server
 
 
 work_dir = os.path.dirname(os.path.realpath(__file__))
@@ -10,7 +9,7 @@ path_to_pl = os.path.join(work_dir, 'clients', 'playlist')
 path_to_log = os.path.join(work_dir, 'log', 'log')
 
 
-class CustomHandler(BaseHTTPRequestHandler):
+class CustomHandler(http.server.BaseHTTPRequestHandler):
 
     def set_headers(self):
         self.send_response(200)
@@ -32,7 +31,8 @@ class CustomHandler(BaseHTTPRequestHandler):
         self.set_headers()
 
 
-def start_server(server_class=HTTPServer, handler_class=CustomHandler):
+def start_server(server_class=http.server.HTTPServer,
+                 handler_class=CustomHandler):
     server_address = ('', 80)
     httpd = server_class(server_address, handler_class)
     httpd.serve_forever()

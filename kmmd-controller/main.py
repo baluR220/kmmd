@@ -10,7 +10,6 @@ restart_flag = 'restart_req'
 
 while True:
     if restart_flag in os.listdir(content_dir):
-        # print('restart_req')
         os.rmdir(os.path.join(content_dir, restart_flag))
         with open(path_to_pl, 'w') as playlist:
             for line in os.listdir(content_dir):
