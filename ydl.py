@@ -6,7 +6,7 @@ install it with 'pip install youtube-dl'.
 import traceback
 import os
 import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import ttk
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import askokcancel
 from threading import Thread
