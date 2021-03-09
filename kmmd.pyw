@@ -1,12 +1,12 @@
 import os
 import sys
+import ftplib
 import subprocess
 from threading import Thread
-from tkinter import *
+import tkinter as tk
+from tkinter import ttk
 from tkinter.filedialog import askdirectory
-from tkinter.ttk import *
 from tkinter.messagebox import askokcancel
-import ftplib
 
 
 formats = ['mp4', 'mov', 'avi', 'webm', 'mkv']
@@ -20,21 +20,20 @@ class Base():
     def __init__(self):
         self.root_directory = ''
         self.no_start = ''
-        self.script_dir = os.path.dirname(os.path.realpath(__file__))
         self.pre_check()
         self.create_gui()
 
     def create_gui(self):
-        self.root = Tk()
+        self.root = tk.Tk()
         self.root.title('KMMD')
         self.root.resizable(False, False)
 
-        Style().configure("WF.TFrame", relief=GROOVE)
+        ttk.Style().configure("WF.TFrame", relief=tk.GROOVE)
 
-        self.canvas = Canvas(
+        self.canvas = tk.Canvas(
             self.root, highlightthickness=0, width=400, height=400,
         )
-        self.canvas.pack(fill=BOTH)
+        self.canvas.pack(fill=tk.BOTH)
         self.create_intro_window()
         self.root.mainloop()
 
@@ -42,10 +41,10 @@ class Base():
         self.root_directory = askdirectory()
         self.root_label.configure(text=self.root_directory)
         if self.root_directory:
-            self.convert_button_web.config(state=NORMAL)
-            self.convert_button_plasma.config(state=NORMAL)
-            self.deliver_button_web.config(state=NORMAL)
-            self.deliver_button_plasma.config(state=NORMAL)
+            self.convert_button_web.config(state=tk.NORMAL)
+            self.convert_button_plasma.config(state=tk.NORMAL)
+            self.deliver_button_web.config(state=tk.NORMAL)
+            self.deliver_button_plasma.config(state=tk.NORMAL)
 
     def pre_check(self):
         if 'nt' in sys.builtin_module_names:
@@ -69,50 +68,50 @@ class Base():
         self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
         self.canvas.delete('message')
         if self.no_start:
-            label_head = Label(self.canvas, text='Sorry:')
+            label_head = ttk.Label(self.canvas, text='Sorry:')
             self.canvas.create_window(200, 80, window=label_head, tag='intro')
-            label_error = Label(self.canvas, text=self.no_start)
+            label_error = ttk.Label(self.canvas, text=self.no_start)
             self.canvas.create_window(
                 200, 120, window=label_error, tag='intro'
             )
         else:
-            choose_button = Button(
+            choose_button = ttk.Button(
                 self.canvas, text='Choose directory',
                 command=self.choose_directory
             )
             self.canvas.create_window(
                 200, 20, window=choose_button, tag='intro'
             )
-            self.root_label = Label(self.canvas, text=self.root_directory)
+            self.root_label = ttk.Label(self.canvas, text=self.root_directory)
             self.canvas.create_window(
                 200, 60, window=self.root_label, tag='intro'
             )
             if not self.root_directory:
-                init_state = DISABLED
+                init_state = tk.DISABLED
             else:
-                init_state = NORMAL
-            self.convert_button_web = Button(
+                init_state = tk.NORMAL
+            self.convert_button_web = ttk.Button(
                 self.canvas, text='Convert videos for web',
                 command=lambda: self.call_converter('web'), state=init_state
             )
             self.canvas.create_window(
                 200, 120, window=self.convert_button_web, tag='intro'
             )
-            self.convert_button_plasma = Button(
+            self.convert_button_plasma = ttk.Button(
                 self.canvas, text='Convert videos for plasma and tkiosk',
                 command=lambda: self.call_converter('plasma'), state=init_state
             )
             self.canvas.create_window(
                 200, 160, window=self.convert_button_plasma, tag='intro'
             )
-            self.deliver_button_web = Button(
+            self.deliver_button_web = ttk.Button(
                 self.canvas, text='Deliver videos to web',
                 command=lambda: self.get_cred('web'), state=init_state
             )
             self.canvas.create_window(
                 200, 220, window=self.deliver_button_web, tag='intro'
             )
-            self.deliver_button_plasma = Button(
+            self.deliver_button_plasma = ttk.Button(
                 self.canvas, text='Deliver videos to plasma and tkiosk',
                 command=lambda: self.get_cred('plasma'), state=init_state
             )
@@ -123,23 +122,23 @@ class Base():
     def create_message_window(self):
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.canvas.delete('intro')
-        message_window = Frame(self.canvas, style='WF.TFrame')
-        message_scrollbar = Scrollbar(message_window)
-        self.message_text = Text(
+        message_window = ttk.Frame(self.canvas, style='WF.TFrame')
+        message_scrollbar = ttk.Scrollbar(message_window)
+        self.message_text = tk.Text(
             message_window, state="disabled", highlightthickness=0,
             bd=0, yscrollcommand=message_scrollbar.set
         )
         self.canvas.create_window(
-            0, 0, anchor=NW, window=message_window, width=400, height=360,
+            0, 0, anchor=tk.NW, window=message_window, width=400, height=360,
             tag='message'
         )
-        message_scrollbar.pack(side=RIGHT, fill=Y)
-        self.message_text.pack(side=LEFT, fill=BOTH)
+        message_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.message_text.pack(side=tk.LEFT, fill=tk.BOTH)
         message_scrollbar.config(command=self.message_text.yview)
 
-        self.back_button = Button(
+        self.back_button = ttk.Button(
             self.canvas, text='Back', command=self.create_intro_window,
-            state=DISABLED
+            state=tk.DISABLED
         )
         self.canvas.create_window(
             200, 380, window=self.back_button, tag='message'
@@ -149,9 +148,9 @@ class Base():
 
         text = '\n' + ' '.join([str(line) for line in text])
         self.message_text.configure(state='normal')
-        self.message_text.insert(END, text)
+        self.message_text.insert(tk.END, text)
         self.message_text.configure(state='disabled')
-        self.message_text.see(END)
+        self.message_text.see(tk.END)
         self.root.update()
 
     def call_converter(self, opt):
@@ -162,7 +161,7 @@ class Base():
             Thread(target=self.convert_files_for_plasma).start()
 
     def get_cred(self, opt):
-        cred_frame = Frame(self.canvas, style='WF.TFrame')
+        cred_frame = ttk.Frame(self.canvas, style='WF.TFrame')
         self.canvas.create_window(
             200, 200, window=cred_frame, tag='cred_frame'
         )
@@ -171,34 +170,34 @@ class Base():
             header += 'web'
         elif opt == 'plasma':
             header += 'plasma and tkiosk'
-        header_label = Label(cred_frame, text=header)
+        header_label = ttk.Label(cred_frame, text=header)
         header_label.pack(pady=20)
-        login = StringVar()
-        login_label = Label(cred_frame, text='Login')
+        login = tk.StringVar()
+        login_label = ttk.Label(cred_frame, text='Login')
         login_label.pack()
-        login_input = Entry(cred_frame, textvariable=login)
+        login_input = ttk.Entry(cred_frame, textvariable=login)
         login_input.pack()
-        password = StringVar()
-        password_label = Label(cred_frame, text='Password')
+        password = tk.StringVar()
+        password_label = ttk.Label(cred_frame, text='Password')
         password_label.pack()
-        password_input = Entry(
+        password_input = ttk.Entry(
             cred_frame, show='*', textvariable=password
         )
         password_input.pack()
-        button_frame = Frame(cred_frame)
+        button_frame = ttk.Frame(cred_frame)
         button_frame.pack(pady=20, padx=20)
-        back_button = Button(
+        back_button = ttk.Button(
             button_frame, text='Back',
             command=cred_frame.destroy
         )
-        back_button.pack(side=LEFT)
-        next_button = Button(
+        back_button.pack(side=tk.LEFT)
+        next_button = ttk.Button(
             button_frame, text='Next',
             command=lambda: self.call_delivery(
                 opt, cred_frame, (login.get(), password.get())
             )
         )
-        next_button.pack(side=LEFT)
+        next_button.pack(side=tk.LEFT)
         cred_frame.grab_set()
 
     def call_delivery(self, opt, frame, cred):
@@ -379,7 +378,7 @@ class Base():
                         )
                 self.put_message('.........................')
         self.put_message('All files were converted')
-        self.back_button.config(state=NORMAL)
+        self.back_button.config(state=tk.NORMAL)
 
     def convert_files_for_plasma(self):
         folder_raw = self.root_directory
@@ -448,7 +447,7 @@ using 2000K'
                 else:
                     self.put_message("%s is not a video file" % n)
             self.put_message('All files were converted')
-        self.back_button.config(state=NORMAL)
+        self.back_button.config(state=tk.NORMAL)
 
     def delivery_worker(self, login, password, server):
         try:
@@ -537,7 +536,7 @@ using 2000K'
                 self.put_message("Connection closed")
         else:
             self.put_message("Problem with source files detected")
-        self.back_button.config(state=NORMAL)
+        self.back_button.config(state=tk.NORMAL)
 
     def deliver_files_to_web(self, login, password):
         folders_list = os.listdir(self.root_directory)
@@ -585,7 +584,7 @@ using 2000K'
                 self.put_message("Connection closed")
         else:
             self.put_message("Problem with source files detected")
-        self.back_button.config(state=NORMAL)
+        self.back_button.config(state=tk.NORMAL)
 
 
 if __name__ == '__main__':
