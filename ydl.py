@@ -1,10 +1,15 @@
-from tkinter import *
-from tkinter.filedialog import askdirectory
-from tkinter.ttk import *
-from threading import Thread
-from tkinter.messagebox import askokcancel
+'''
+Wrapper over youtube-dl for fancy gui. Yotube-dl module required,
+install it with 'pip install youtube-dl'.
+
+'''
 import traceback
 import os
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter.filedialog import askdirectory
+from tkinter.messagebox import askokcancel
+from threading import Thread
 
 
 no_ydl_module = False
@@ -18,150 +23,188 @@ class Base():
 
     def __init__(self):
         self.root_directory = ''
-        self.root = Tk()
-        self.root.title('YDL')
-        self.root.resizable(False, False)
+        root = tk.Tk()
+        root.title('YDL')
+        root.resizable(False, False)
 
-        Style().configure("WF.TFrame", background='white', relief=GROOVE)
-        Style().configure("Red.TLabel", foreground='red')
+        ttk.Style().configure("WF.TFrame", background='white',
+                              relief=tk.GROOVE)
+        ttk.Style().configure("Red.TLabel", foreground='red')
 
-        self.canvas = Canvas(
-            self.root, highlightthickness=0, width=400, height=240,
+        canvas = tk.Canvas(
+            root, highlightthickness=0, width=400, height=240,
         )
-        self.canvas.pack(fill=BOTH)
-        self.create_intro_window()
-        self.root.mainloop()
+        canvas.pack(fill=tk.BOTH)
+        self.create_intro_window(root, canvas)
+        root.mainloop()
 
-    def choose_directory(self):
+    def choose_directory(self, label, button):
+        '''
+        Ask user for path to save file.
+        '''
         self.root_directory = askdirectory()
-        self.root_label.configure(text=self.root_directory)
+        label.configure(text=self.root_directory)
         if self.root_directory:
-            self.download_button.configure(state=NORMAL)
+            button.configure(state=tk.NORMAL)
 
-    def create_intro_window(self):
-        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
-        self.canvas.delete('message')
+    def create_intro_window(self, root, canvas):
+        '''
+        Create main window.
+        '''
+        root.protocol("WM_DELETE_WINDOW", root.destroy)
+        canvas.delete('message')
         if not no_ydl_module:
-            self.url = StringVar()
-            link_label = Label(self.canvas, text='Link to download:')
-            self.canvas.create_window(200, 20, window=link_label, tag='intro')
-            link_entry = Entry(self.canvas, width=50, textvariable=self.url)
-            self.canvas.create_window(200, 50, window=link_entry, tag='intro')
+            url = tk.StringVar()
+            link_label = ttk.Label(canvas, text='Link to download:')
+            canvas.create_window(200, 20, window=link_label, tag='intro')
+            link_entry = ttk.Entry(canvas, width=50,
+                                   textvariable=url)
+            canvas.create_window(200, 50, window=link_entry, tag='intro')
             link_entry.focus_set()
-            self.link_error = Label(self.canvas, text='', style='Red.TLabel')
-            self.canvas.create_window(
-                200, 80, window=self.link_error, tag='intro'
+            link_error = ttk.Label(canvas, text='',
+                                   style='Red.TLabel')
+            canvas.create_window(
+                200, 80, window=link_error, tag='intro'
             )
-            choose_button = Button(
-                self.canvas, text='Save to:', command=self.choose_directory
+            choose_button = ttk.Button(
+                canvas, text='Save to:',
+                command=lambda: self.choose_directory(root_label,
+                                                      download_button)
             )
-            self.canvas.create_window(
+            canvas.create_window(
                 200, 110, window=choose_button, tag='intro'
             )
-            self.root_label = Label(self.canvas)
-            self.canvas.create_window(
-                200, 140, window=self.root_label, tag='intro'
+            root_label = ttk.Label(canvas)
+            canvas.create_window(
+                200, 140, window=root_label, tag='intro'
             )
-            self.download_button = Button(
-                self.canvas, text='Download',
-                command=self.download_file, state=DISABLED
+            download_button = ttk.Button(
+                canvas, text='Download',
+                state=tk.DISABLED,
+                command=lambda: self.download_file(root, canvas,
+                                                   url, link_error)
             )
-            self.canvas.create_window(
-                200, 200, window=self.download_button, tag='intro'
+            canvas.create_window(
+                200, 200, window=download_button, tag='intro'
             )
         else:
-            error_label = Label(
-                self.canvas,
+            error_label = ttk.Label(
+                canvas,
                 text='youtube_dl module not found, \
 try "pip install youtube_dl"'
             )
-            self.canvas.create_window(200, 50, window=error_label, tag='intro')
+            canvas.create_window(200, 50, window=error_label, tag='intro')
 
-    def create_message_window(self):
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.canvas.delete('intro')
-        message_window = Frame(self.canvas, style='WF.TFrame')
-        message_scrollbar = Scrollbar(message_window)
-        self.message_text = Text(
+    def create_message_window(self, root, canvas):
+        '''
+        Create message window with status of download.
+        '''
+        root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing(root))
+        canvas.delete('intro')
+        message_window = ttk.Frame(canvas, style='WF.TFrame')
+        message_scrollbar = ttk.Scrollbar(message_window)
+        message_text = tk.Text(
             message_window, state="disabled", highlightthickness=0,
             bd=0, yscrollcommand=message_scrollbar.set
         )
-        self.canvas.create_window(
-            0, 0, anchor=NW, window=message_window, width=400, height=200,
+        canvas.create_window(
+            0, 0, anchor=tk.NW, window=message_window, width=400, height=200,
             tag='message'
         )
-        message_scrollbar.pack(side=RIGHT, fill=Y)
-        self.message_text.pack(side=LEFT, fill=BOTH)
-        message_scrollbar.config(command=self.message_text.yview)
+        message_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        message_text.pack(side=tk.LEFT, fill=tk.BOTH)
+        message_scrollbar.config(command=message_text.yview)
 
-        self.back_button = Button(
-            self.canvas, text='Back', command=self.create_intro_window,
-            state=DISABLED
+        self.back_button = ttk.Button(
+            canvas, text='Back',
+            command=lambda: self.create_intro_window(root, canvas),
+            state=tk.DISABLED
         )
-        self.canvas.create_window(
+        canvas.create_window(
             200, 220, window=self.back_button, tag='message'
         )
+        return message_text
 
-    def put_message(self, *text):
-        self.message_text.configure(state='normal')
+    def put_message(self, text_object, *text):
+        '''
+        Put message in specified text_object.
+        '''
+        text_object.configure(state='normal')
         text = ' '.join(text)
         text = '\n' + text
-        self.message_text.insert(END, text)
-        self.message_text.configure(state='disabled')
-        self.message_text.see(END)
-        self.root.update()
+        text_object.insert(tk.END, text)
+        text_object.configure(state='disabled')
+        text_object.see(tk.END)
 
-    def progress_hook(self, data):
-        if data['status'] == 'downloading':
-            progress = data['_percent_str']
-            self.message_text.configure(state='normal')
-            self.message_text.delete('end-1l linestart', END)
-            self.message_text.configure(state='disabled')
-            self.message_text.see(END)
-            self.root.update()
-            self.put_message(progress)
-        if data['status'] == 'finished':
-            self.put_message('Done.')
+    def download_thread(self, text_object, url):
+        '''
+        Thread with youtube_dl working.
+        '''
 
-    def download_thread(self):
+        def progress_hook(data):
+            '''
+            Function to show download status.
+            '''
+            nonlocal text_object
+            if data['status'] == 'downloading':
+                progress = data['_percent_str']
+                text_object.configure(state='normal')
+                text_object.delete('end-1l linestart', tk.END)
+                text_object.configure(state='disabled')
+                text_object.see(tk.END)
+                self.put_message(text_object, progress)
+            if data['status'] == 'finished':
+                self.put_message(text_object, 'Done.')
+
         name = f'%(title)s.%(ext)s'
         out_path = os.path.join(self.root_directory, name)
         ydl_opts = {
             'format': 'best[ext=mp4]/best',
             'outtmpl': out_path,
-            'progress_hooks': [self.progress_hook],
+            'progress_hooks': [progress_hook],
         }
-        url = self.url.get()
+        url = url.get()
         try:
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                self.put_message('Started downloading..')
+                self.put_message(text_object, 'Started downloading..')
                 info = ydl.extract_info(url, download=False)
                 try:
                     self.put_message(
+                        text_object,
                         '%s.%s' % (info['title'], info['ext'])
                     )
                 except Exception:
-                    self.put_message('Exception in printing file name')
-                self.put_message('Destination:', self.root_directory)
-                self.put_message(' ')
+                    self.put_message(text_object,
+                                     'Exception in printing file name')
+                self.put_message(text_object,
+                                 'Destination:', self.root_directory)
+                self.put_message(text_object, ' ')
                 ydl.download([url])
-                self.back_button.configure(state=NORMAL)
+                self.back_button.configure(state=tk.NORMAL)
         except Exception:
-            self.put_message(traceback.format_exc())
-            self.back_button.configure(state=NORMAL)
+            self.put_message(text_object, traceback.format_exc())
+            self.back_button.configure(state=tk.NORMAL)
         finally:
-            self.back_button.configure(state=NORMAL)
+            self.back_button.configure(state=tk.NORMAL)
 
-    def download_file(self):
-        if self.url.get():
-            self.create_message_window()
-            Thread(target=self.download_thread, daemon=True).start()
+    def download_file(self, root, canvas, url, label):
+        '''
+        Wrapper over download thread.
+        '''
+        if url.get():
+            text_object = self.create_message_window(root, canvas)
+            Thread(target=self.download_thread,
+                   daemon=True, args=(text_object, url)).start()
         else:
-            self.link_error.configure(text='Specify link!')
+            label.configure(text='Specify link!')
 
-    def on_closing(self):
+    def on_closing(self, root):
+        '''
+        Function to be called when specified as protocol for
+        root close window event.
+        '''
         if askokcancel('Quit', 'Do you want to quit program?'):
-            self.root.destroy()
+            root.destroy()
 
 
 if __name__ == '__main__':
