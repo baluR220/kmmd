@@ -1,3 +1,8 @@
+'''
+Converter and delivery program for kmmd digital singage,
+ffmpeg required to be in $PATH env variable
+
+'''
 import os
 import sys
 import ftplib
